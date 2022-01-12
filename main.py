@@ -1,6 +1,7 @@
 from tkinter import *
+import sqlite3 as sq3
 import math
-
+import datetime
 # ---------------------------- CONSTANTS ------------------------------- #
 PINK = "#e2979c"
 RED = "#e7305b"
@@ -12,6 +13,76 @@ SHORT_BREAK_MIN = 5
 LONG_BREAK_MIN = 20
 reps = 5
 timer = ""
+localDB = "pomodoro_to-do_list.db"
+
+# TODO - 5:---------------------------- to-do list & DB --------
+# Create a Table
+# Create a database or connect to one
+conn = sq3.connect(localDB)
+# Create a cursor
+c = conn.cursor()
+# c.execute("""CREATE TABLE pomodoro (
+#     pomodoro_1 text,
+#     pomodoro_2 text,
+#     pomodoro_3 text,
+#     pomodoro_4 text
+#     )""")
+
+
+# Create Submit Function For Databases
+def submit():
+    # Create a database or connect to one
+    conn = sq3.connect(localDB)
+    # Create a cursor
+    c = conn.cursor()
+
+    # Insert Into Table
+    c.execute("INSERT INTO pomodoro VALUES (:pomodoro_1, :pomodoro_2, :pomodoro_3, :pomodoro_4)",
+              {
+                  'pomodoro_1': pomodoro_1.get(),
+                  'pomodoro_2': pomodoro_2.get(),
+                  'pomodoro_3': pomodoro_3.get(),
+                  'pomodoro_4': pomodoro_4.get(),
+              })
+
+    # Commit changes
+    c = conn.commit()
+    # Close connection
+    c = conn.close()
+
+    # Clear The Text Boxes
+    pomodoro_1.delete(0, END)
+    pomodoro_2.delete(0, END)
+    pomodoro_3.delete(0, END)
+    pomodoro_4.delete(0, END)
+
+
+
+def query():
+    # Create a database or connect to one
+    conn = sq3.connect(localDB)
+    # Create a cursor
+    c = conn.cursor()
+
+    # Query the database
+    c.execute("SELECT * FROM pomodoro")
+    pomodoros = c.fetchall()
+    print(pomodoros)
+
+    # Loop Through Results
+    print_records = ''
+    for pomodoro in pomodoros:
+        print_records += str(pomodoro) + "\n"
+
+    query_label = Label(window, text=print_records)
+    query_label.grid(row=8, column=0, columnspan=2, padx=10, pady=10, ipadx=137)
+
+    # Commit changes
+    c = conn.commit()
+    # Close connection
+    c = conn.close()
+
+
 
 # TODO - 4:---------------------------- TIMER RESET ------------------------------- #
 
@@ -24,8 +95,7 @@ def reset_timer():
     reps = 0
 
 # TODO - 3:---------------------------- TIMER MECHANISM -------------------------------
-# TODO - hide the timer
-# TODO - click 1 vs click 2 > change the button to pause after
+
 def start_timer():
     # count_down(100)
     global reps
@@ -70,8 +140,9 @@ def count_down(count):
 # TODO - 1:---------------------------- UI SETUP ------------------------------- #
 
 window = Tk()
-window.title("Pomodoro")
+window.title("Pomodoro Timer & To-Do List")
 window.config(padx=100, pady=50, bg=YELLOW)
+# localDB = "pomodoro_to-do_list.db"
 
 title_label = Label(text="Timer", fg=GREEN, bg=YELLOW, font=(FONT_NAME, 50))
 title_label.grid(column=1, row=0)
@@ -94,5 +165,41 @@ reset_button.grid(column=2, row=2)
 check_marks = Label(fg=GREEN, bg=YELLOW)
 # marks += "✔"
 check_marks.grid(column=1, row=3)
+
+# Create Text Boxes
+pomodoro_1 = Entry(window, width=30)
+pomodoro_1.grid(row=4, column=1, padx=20, pady=10)
+pomodoro_2 = Entry(window, width=30)
+pomodoro_2.grid(row=5, column=1, padx=20, pady=10)
+pomodoro_3 = Entry(window, width=30)
+pomodoro_3.grid(row=6, column=1, padx=20, pady=10)
+pomodoro_4 = Entry(window, width=30)
+pomodoro_4.grid(row=7, column=1, padx=20, pady=10)
+#
+#
+# Create Text Box Labels
+pomodoro_1_label = Label(window, text="Pomodoro #1")
+pomodoro_1_label.grid(row=4, column=0)
+pomodoro_2_label = Label(window, text="Pomodoro #2")
+pomodoro_2_label.grid(row=5, column=0)
+pomodoro_3_label = Label(window, text="Pomodoro #3")
+pomodoro_3_label.grid(row=6, column=0)
+pomodoro_4_label = Label(window, text="Pomodoro #4")
+pomodoro_4_label.grid(row=7, column=0)
+#
+#
+# Create a Submit Button
+submit_btn = Button(window, text="Add Record To Database", command=submit)
+submit_btn.grid(row=8, column=0, columnspan=2, pady=10, padx=10, ipadx=100)
+#
+# # Create a Query Button
+query_btn = Button(window, text="Show Records", command=query)
+query_btn.grid(row=9, column=0, columnspan=2, padx=10, pady=10, ipadx=137)
+
+# Commit changes
+c = conn.commit()
+# Close connection
+c = conn.close()
+
 
 window.mainloop()
